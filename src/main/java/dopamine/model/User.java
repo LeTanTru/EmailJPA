@@ -1,8 +1,8 @@
-package model;
+package dopamine.model;
 
 import java.io.Serializable;
 
-public class UserModel implements Serializable {
+public class User implements Serializable {
 	/**
 	 * 
 	 */
@@ -11,13 +11,13 @@ public class UserModel implements Serializable {
 	private String lastName;
 	private String email;
 
-	public UserModel() {
+	public User() {
 		firstName = "";
 		lastName = "";
 		email = "";
 	}
 
-	public UserModel(String firstName, String lastName, String email) {
+	public User(String firstName, String lastName, String email) {
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.email = email;
