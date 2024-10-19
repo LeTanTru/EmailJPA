@@ -1,152 +1,76 @@
 package dopamine.dao.impl;
 
-import java.sql.*;
-import java.util.ArrayList;
-import dopamine.connection.ConnectionPool;
-import dopamine.dao.UserDAO;
 import dopamine.model.User;
 import dopamine.utils.DBUtil;
 
-public class UserDAOImpl implements UserDAO {
+import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
+import javax.persistence.NoResultException;
+import javax.persistence.TypedQuery;
 
-    @Override
-    public int insert(User user) {
-        Connection connection = null;
-        PreparedStatement ps = null;
-        String query = "INSERT INTO User (Email, FirstName, LastName) VALUES (?, ?, ?)";
+public class UserDAOImpl {
+    public void insert(User user) {
+        EntityManager em = DBUtil.getEntityManager();
+        EntityTransaction trans = em.getTransaction();
+        trans.begin();
         try {
-            connection = ConnectionPool.getConnection();
-            ps = connection.prepareStatement(query);
-            ps.setString(1, user.getEmail());
-            ps.setString(2, user.getFirstName());
-            ps.setString(3, user.getLastName());
-            return ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace(); // Better error handling
-            return 0;
+            em.persist(user);
+            trans.commit();
+        } catch (Exception e) {
+            System.out.println(e);
+            trans.rollback();
         } finally {
-            DBUtil.closePreparedStatement(ps);
-            DBUtil.closeConnection(connection);
+            em.close();
         }
     }
 
-    @Override
-    public int update(User user) {
-        Connection connection = null;
-        PreparedStatement ps = null;
-        String query = "UPDATE User SET FirstName = ?, LastName = ? WHERE Email = ?";
+    public static void update(User user) {
+        EntityManager em = DBUtil.getEntityManager();
+        EntityTransaction trans = em.getTransaction();
+        trans.begin();
         try {
-            connection = ConnectionPool.getConnection();
-            ps = connection.prepareStatement(query);
-            ps.setString(1, user.getFirstName());
-            ps.setString(2, user.getLastName());
-            ps.setString(3, user.getEmail());
-            return ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace(); // Better error handling
-            return 0;
+            em.merge(user);
+            trans.commit();
+        } catch (Exception e) {
+            System.out.println(e);
+            trans.rollback();
         } finally {
-            DBUtil.closePreparedStatement(ps);
-            DBUtil.closeConnection(connection);
+            em.close();
         }
     }
 
-    @Override
-    public int delete(User user) {
-        Connection connection = null;
-        PreparedStatement ps = null;
-        String query = "DELETE FROM User WHERE Email = ?";
+    public static void delete(User user) {
+        EntityManager em = DBUtil.getEntityManager();
+        EntityTransaction trans = em.getTransaction();
+        trans.begin();
         try {
-            connection = ConnectionPool.getConnection();
-            ps = connection.prepareStatement(query);
-            ps.setString(1, user.getEmail());
-            return ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace(); // Better error handling
-            return 0;
+            em.remove(em.merge(user));
+            trans.commit();
+        } catch (Exception e) {
+            System.out.println(e);
+            trans.rollback();
         } finally {
-            DBUtil.closePreparedStatement(ps);
-            DBUtil.closeConnection(connection);
+            em.close();
         }
     }
 
-    @Override
+    public static User selectUser(String email) {
+        EntityManager em = DBUtil.getEntityManager();
+        String qString = "SELECT u FROM User u " +
+                "WHERE u.email = :email";
+        TypedQuery<User> q = em.createQuery(qString, User.class);
+        q.setParameter("email", email);
+        try {
+            return q.getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        } finally {
+            em.close();
+        }
+    }
+
     public boolean emailExists(String email) {
-        Connection connection = null;
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-        String query = "SELECT Email FROM User WHERE Email = ?";
-        try {
-            connection = ConnectionPool.getConnection();
-            ps = connection.prepareStatement(query);
-            ps.setString(1, email);
-            rs = ps.executeQuery();
-            return rs.next();
-        } catch (SQLException e) {
-            e.printStackTrace(); // Better error handling
-            return false;
-        } finally {
-            DBUtil.closeResultSet(rs);
-            DBUtil.closePreparedStatement(ps);
-            DBUtil.closeConnection(connection);
-        }
-    }
-
-    @Override
-    public User selectUser(String email) {
-        Connection connection = null;
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-        String query = "SELECT * FROM User WHERE Email = ?";
-        try {
-            connection = ConnectionPool.getConnection();
-            ps = connection.prepareStatement(query);
-            ps.setString(1, email);
-            rs = ps.executeQuery();
-            User user = null;
-            if (rs.next()) {
-                user = new User();
-                user.setFirstName(rs.getString("FirstName"));
-                user.setLastName(rs.getString("LastName"));
-                user.setEmail(rs.getString("Email"));
-            }
-            return user;
-        } catch (SQLException e) {
-            e.printStackTrace(); // Better error handling
-            return null;
-        } finally {
-            DBUtil.closeResultSet(rs);
-            DBUtil.closePreparedStatement(ps);
-            DBUtil.closeConnection(connection);
-        }
-    }
-
-    @Override
-    public ArrayList<User> selectUsers() {
-        Connection connection = null;
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-        String query = "SELECT * FROM User";
-        try {
-            connection = ConnectionPool.getConnection();
-            ps = connection.prepareStatement(query);
-            rs = ps.executeQuery();
-            ArrayList<User> users = new ArrayList<User>();
-            while (rs.next()) {
-                User user = new User();
-                user.setFirstName(rs.getString("FirstName"));
-                user.setLastName(rs.getString("LastName"));
-                user.setEmail(rs.getString("Email"));
-                users.add(user);
-            }
-            return users;
-        } catch (SQLException e) {
-            e.printStackTrace(); // Better error handling
-            return null;
-        } finally {
-            DBUtil.closeResultSet(rs);
-            DBUtil.closePreparedStatement(ps);
-            DBUtil.closeConnection(connection);
-        }
+        User u = selectUser(email);
+        return u != null;
     }
 }

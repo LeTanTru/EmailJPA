@@ -1,49 +1,56 @@
 package dopamine.utils;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import dopamine.connection.DBConnection;
+import dopamine.constants.Constant;
+
+import org.hibernate.jpa.HibernatePersistenceProvider;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.hibernate.cfg.AvailableSettings.*;
 
 public class DBUtil {
-    
-    public static void closeStatement(Statement s) {
-        try {
-            if (s != null) {
-                s.close();
-            }
-        } catch (SQLException e) {
-            System.out.println(e);
+    private static final EntityManagerFactory enma = new HibernatePersistenceProvider()
+            .createContainerEntityManagerFactory(new DBConnection(), config());
+
+    private static Map<String, Object> config() {
+        Map<String, Object> map = new HashMap<>();
+
+        map.put(JPA_JDBC_DRIVER, Constant.DB_DRIVER);
+        map.put(JPA_JDBC_URL, Constant.DB_URL);
+        map.put(JPA_JDBC_USER, Constant.USERNAME);
+        map.put(JPA_JDBC_PASSWORD, Constant.PASSWORD);
+        map.put(DIALECT, org.hibernate.dialect.MySQL8Dialect.class);
+        map.put(HBM2DDL_AUTO, "update");
+        map.put(SHOW_SQL, "true");
+        map.put(FORMAT_SQL, "true");
+        map.put(QUERY_STARTUP_CHECKING, "false");
+        map.put(GENERATE_STATISTICS, "false");
+        map.put(USE_REFLECTION_OPTIMIZER, "false");
+        map.put(USE_SECOND_LEVEL_CACHE, "false");
+        map.put(USE_QUERY_CACHE, "false");
+        map.put(USE_STRUCTURED_CACHE, "false");
+        map.put(STATEMENT_BATCH_SIZE, "20");
+        map.put(AUTOCOMMIT, "false");
+
+        map.put("hibernate.hikari.minimumIdle", "5");
+        map.put("hibernate.hikari.maximumPoolSize", "15");
+        map.put("hibernate.hikari.idleTimeout", "30000");
+
+        return map;
+    }
+
+    public static EntityManager getEntityManager() {
+        return enma.createEntityManager();
+    }
+
+    public static void closeEntityManagerFactory() {
+        if (enma != null) {
+            enma.close();
         }
     }
 
-    public static void closePreparedStatement(Statement ps) {
-        try {
-            if (ps != null) {
-                ps.close();
-            }
-        } catch (SQLException e) {
-            System.out.println(e);
-        }
-    }
-
-    public static void closeResultSet(ResultSet rs) {
-        try {
-            if (rs != null) {
-                rs.close();
-            }
-        } catch (SQLException e) {
-            System.out.println(e);
-        }
-    }
-
-    public static void closeConnection(Connection c) {
-        try {
-            if (c != null) {
-                c.close();
-            }
-        } catch (SQLException e) {
-            System.out.println(e);
-        }
-    }
 }
