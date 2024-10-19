@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+
 /**
  * Servlet implementation class EmailServlet
  */
@@ -18,6 +19,7 @@ public class EmailServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
 	UserDAOImpl userDAO = new UserDAOImpl();
+
 
 	/**
 	 * @see HttpServlet#HttpServlet()
@@ -54,9 +56,11 @@ public class EmailServlet extends HttpServlet {
 		}
 		else if (action.equals("add")) {
 			// get parameters from the request
+
 			String firstName = request.getParameter("firstName");
 			String lastName = request.getParameter("lastName");
 			String email = request.getParameter("email");
+
 
 			// store data in User object
 			User user = new User();
@@ -74,13 +78,16 @@ public class EmailServlet extends HttpServlet {
 			else {
 				message = "";
 				url = "/views/thanks.jsp";
+
 				userDAO.insert(user);
 			}
 			request.setAttribute("user", user);
 			request.setAttribute("message", message);
 		}
+
 		getServletContext()
 				.getRequestDispatcher(url)
 				.forward(request, response);
+
 	}
 }
