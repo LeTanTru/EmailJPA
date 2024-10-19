@@ -1,20 +1,17 @@
 package dopamine.dao;
 
 import dopamine.model.User;
-import java.util.ArrayList;
 
 public interface UserDAO {
 
-	ArrayList<User> selectUsers();
+	boolean emailExists(String email);
 
 	User selectUser(String email);
 
-	boolean emailExists(String email);
+	void delete(User user);
 
-	int delete(User user);
+	void update(User user);
 
-	int update(User user);
+	void insert(User user);
 
-	int insert(User user);
-	
 }
